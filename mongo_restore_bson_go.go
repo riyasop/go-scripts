@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"sync"
 )
 
 /*
@@ -19,6 +20,7 @@ Description: To Restore Multiple BSON Mongo DB Collection Backup Files in One Cl
 Version: 1.0
 Tags: mongodb, bson, restore mongo db, restore mongodb, restore mongo db , restore bson files, restore mongodb collections
 */
+var wg sync.WaitGroup
 
 func execute(file string) {
 	fname := path.Base(file)
@@ -41,6 +43,7 @@ func execute(file string) {
 	if err := in.Err(); err != nil {
 		log.Printf("error: %s", err)
 	}
+	wg.Done()
 }
 func main() {
 
@@ -74,10 +77,12 @@ Example:-
 			return nil
 		}
 		if fullpath[len(fullpath)-4:] == "bson" {
+			wg.Add(1)
 			go execute(fullpath)
 		}
 		return nil
 	})
+	wg.Wait()
 	if err != nil {
 		panic(err)
 	}
